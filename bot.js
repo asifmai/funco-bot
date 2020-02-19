@@ -24,7 +24,7 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
     console.log(`No of Products found on site: ${productsLinks.length}`);
     productsLinks = _.uniq(productsLinks);
     console.log(`No of Products found on site (after removing duplicates): ${productsLinks.length}`);
-    // fs.writeFileSync('productsLinks.json', JSON.stringify(productsLinks));
+    fs.writeFileSync('productsLinks.json', JSON.stringify(productsLinks));
 
     // Scrape Products Data
     console.log(`Fetching Products Data...`);
