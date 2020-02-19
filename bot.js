@@ -1,17 +1,21 @@
 const fs = require('fs');
 const _ = require('underscore');
 const rimraf = require('rimraf');
+const path = require('path');
 const pLimit = require('p-limit');
+const download = require('image-downloader');
+const {zip} = require('zip-a-folder');
 const Helper = require('./helpers');
 const {siteLink} = require('./config');
 let browser;
 let productsLinks = [];
-// productsLinks = JSON.parse(fs.readFileSync('productsLinks.json', 'utf8'));
+productsLinks = JSON.parse(fs.readFileSync('productsLinks.json', 'utf8'));
 
 module.exports.runBot = () => new Promise(async (resolve, reject) => {
   try {
     browser = await Helper.launchBrowser();
     rimraf.sync('pics');
+    if (fs.existsSync('pics.zip')) fs.unlinkSync('pics.zip');
     if (fs.existsSync('products.csv')) fs.unlinkSync('products.csv');
 
     // Fetch Products Links from site
@@ -25,6 +29,8 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
     // Scrape Products Data
     console.log(`Fetching Products Data...`);
     await scrapeProducts();
+
+    await zip('pics', 'pics.zip');
 
     await browser.close();
     resolve(true);
@@ -110,7 +116,6 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     product.dateScraped = new Date();
 
     writeToCsv('products.csv', product);
-    // console.log(product);
     await page.close();
     resolve(true);
   } catch (error) {
@@ -146,19 +151,26 @@ const getCellVal = (valLink, label, page) => new Promise(async (resolve, reject)
 
 const fetchPicturesUrls = (page) => new Promise(async (resolve, reject) => {
   try {
-    let returnVal = '';
+    let pictures = [];
     const morePictures = await page.$('.image-sidebar img');
     if (morePictures) {
       await page.waitForSelector('.image-sidebar img');
-      let pictures = await Helper.getAttrMultiple('.image-sidebar img', 'src', page);
-      pictures = pictures.map(pic => siteLink + pic);
-      returnVal = pictures.join(',');
+      pictures = await Helper.getAttrMultiple('.image-sidebar img', 'src', page);
     } else {
       const picture = await Helper.getAttr('.image-container > img', 'src', page);
-      returnVal = siteLink + picture;
+      pictures.push(picture);
+    }
+    pictures = pictures.map(pic => siteLink + pic);
+    const picPath = path.resolve(__dirname, 'pics');
+    for (let i = 0; i < pictures.length; i++) {
+      const options = {
+        url: pictures[i],
+        dest: picPath,
+      }
+      await download.image(options);
     }
 
-    resolve(returnVal);
+    resolve(pictures.join(','));
   } catch (error) {
     console.log(`fetchPicturesUrls Error: ${error.message}`);
     reject(error);
