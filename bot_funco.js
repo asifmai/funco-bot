@@ -91,11 +91,15 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     const product = {url: productsLinks[prodIdx]};
     product.title = await Helper.getTxt('.product-info h1', page);
     product.releaseDate = await getCellVal('val', 'release date:', page);
+    product.releaseDateUrl = await getCellVal('url', 'release date:', page);
     product.status = await getCellVal('val', 'status:', page);
     product.itemNumber = await getCellVal('val', 'item number:', page);
     product.category = await getCellVal('val', 'category:', page);
+    product.categoryUrl = await getCellVal('url', 'category:', page);
     product.productType = await getCellVal('val', 'product type:', page);
+    product.productTypeUrl = await getCellVal('url', 'product type:', page);
     product.seeMore = await getCellVal('val', 'see more:', page);
+    product.seeMoreUrl = await getCellVal('url', 'see more:', page);
     product.exclusivity = await getCellVal('val', 'exclusivity:', page);
     product.dateScraped = new Date();
 
@@ -120,6 +124,8 @@ const getCellVal = (valLink, label, page) => new Promise(async (resolve, reject)
         if (valLink == 'val') {
           let propVal = await page.evaluate(p => p.innerText.trim(), props[i]);
           returnVal = propVal.replace(/^.*\:/gi, '').trim();
+        } else if (valLink == 'url') {
+          returnVal = await props[i].$eval('a', (elm, siteLink) => siteLink + elm.getAttribute('href').trim(), siteLink)
         }
       }
     }
