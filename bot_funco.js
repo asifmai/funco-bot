@@ -102,22 +102,26 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
   }
 })
 
-const getCellVal = async (valLink, label, page) => {
+const getCellVal = (valLink, label, page) => new Promise(async (resolve, reject) => {  
   try {
     let returnVal = '';
     await page.waitForSelector('.product-details');
     const props = await page.$$('.product-details > div');
     for (let i = 0; i < props.length; i++) {
       const propLabel = await props[i].$eval('strong', elm => elm.innerText.trim().toLowerCase());
-      console.log(propLabel);
+      if (propLabel == label.toLowerCase()) {
+        if (valLink == 'val') {
+          let propVal = await page.evaluate(p => p.innerText.trim(), props[i]);
+          returnVal = propVal.replace(/^.*\:/gi, '').trim();
+        }
+      }
     }
-
+  
     resolve(returnVal);
   } catch (error) {
     console.log(`getCellVal [${label}] Error: ${error.message}`);
     reject(error);
   }
-}
-
+})
 
 this.runBot();
