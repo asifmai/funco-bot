@@ -108,7 +108,7 @@ const getCellVal = async (valLink, label, page) => {
     await page.waitForSelector('.product-details');
     const props = await page.$$('.product-details > div');
     for (let i = 0; i < props.length; i++) {
-      const propLabel = props[i].$eval('strong', elm => elm.innerText.trim().toLowerCase());
+      const propLabel = await props[i].$eval('strong', elm => elm.innerText.trim().toLowerCase());
       console.log(propLabel);
     }
 
