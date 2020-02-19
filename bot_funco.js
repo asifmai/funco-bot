@@ -1,0 +1,51 @@
+const fs = require('fs');
+const Helper = require('./helpers');
+const {siteLink} = require('./config');
+let browser;
+let productsLinks = [];
+
+module.exports.runBot = () => new Promise(async (resolve, reject) => {
+  try {
+    browser = await Helper.launchBrowser();
+
+    // Fetch Products Links from site
+    await fetchProductsLinks();
+    console.log(`No of Products found on site: ${productsLinks.length}`);
+    fs.writeFileSync('productsLinks.json', JSON.stringify(productsLinks));
+
+    await browser.close();
+    resolve(true);
+  } catch (error) {
+    console.log(`runBot Error: ${error.message}`);
+    reject(error);
+  }
+})
+
+const fetchProductsLinks = () => new Promise(async (resolve, reject) => {
+  try {
+    const page = await Helper.launchPage(browser, true);
+    await page.goto(`${siteLink}/products?limit=192`, {timeout: 0, waitUntil: 'load'});
+    await page.waitForSelector('.pagination > button:nth-last-child(2)');
+    const noOfPages = parseInt(await Helper.getTxt('.pagination > button:nth-last-child(2)', page));
+    console.log(`No of Pages found on site: ${noOfPages}`);
+
+    for (let i = 1; i <= noOfPages; i++) {
+      if (i > 1) {
+        await page.goto(`${siteLink}/products?limit=192&page=${i}`, {timeout: 0, waitUntil: 'load'});
+      }
+      await page.waitForSelector('.products > .catalog-product a.item-figure-container');
+      let pageLinks = await Helper.getAttrMultiple('.products > .catalog-product a.item-figure-container', 'href', page);
+      pageLinks = pageLinks.map(pl => siteLink + pl);
+      productsLinks.push(pageLinks);
+      console.log(productsLinks, productsLinks.length);
+    }
+    
+    await page.close();
+    resolve();
+  } catch (error) {
+    console.log(`fetchProductsLinks Error: ${error.message}`);
+    reject(error);
+  }
+})
+
+this.runBot();
