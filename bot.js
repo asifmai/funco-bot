@@ -1,5 +1,6 @@
 const fs = require('fs');
 const _ = require('underscore');
+const rimraf = require('rimraf');
 const pLimit = require('p-limit');
 const Helper = require('./helpers');
 const {siteLink} = require('./config');
@@ -10,6 +11,7 @@ productsLinks = JSON.parse(fs.readFileSync('productsLinks.json', 'utf8'));
 module.exports.runBot = () => new Promise(async (resolve, reject) => {
   try {
     browser = await Helper.launchBrowser();
+    if (fs.existsSync('products.csv')) fs.unlinkSync('products.csv');
 
     // Fetch Products Links from site
     // console.log(`Fetching Products Links from site...`);
@@ -105,6 +107,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
     product.dateScraped = new Date();
 
+    writeToCsv('products.csv', product);
     console.log(product);
     await page.close();
     resolve(true);
@@ -160,5 +163,13 @@ const fetchPicturesUrls = (page) => new Promise(async (resolve, reject) => {
   }
 })
 
+const writeToCsv = (fileName, data) => {
+  if (!fs.existsSync(fileName)) {
+    const csvHeader = '"Picture URL","Title","Release Date","Release Date URL","Status","Item Number","Category","Category URL","Product Type","Product Type URL","See More","See More URL","Exclusivity","Share URL","Date Scraped"\n';
+    fs.writeFileSync(fileName, csvHeader);
+  }
+  const csvLine = `"${data.pictures}","${data.title}","${data.releaseDate}","${data.releaseDateUrl}","${data.status}","${data.itemNumber}","${data.category}","${data.categoryUrl}","${data.productType}","${data.productTypeUrl}","${data.seeMore}","${data.seeMoreUrl}","${data.exclusivity}","${data.shareUrl}","${data.dateScraped}"\n`;
+  fs.appendFileSync(fileName, csvLine);
+}
 
 this.runBot();

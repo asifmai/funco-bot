@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer');
-const fs = require('fs');
 
 module.exports.launchBrowser = (debug = false) => {
   return new Promise(async (resolve, reject) => {
@@ -266,11 +265,3 @@ module.exports.getAttrMultiple = (selector, attribute, page) => new Promise(asyn
     reject(error);
   }
 });
-
-module.exports.writeToCsv = (fileName, data) => {
-  if (!fs.existsSync(fileName)) {
-    const csvHeader = '"Picture URL","Title","Release Date","Release Date URL","Status","Item Number","Category","Category URL","Product Type","Product Type URL","See More","See More URL","Exclusivity","Share URL","Date Scraped"\n\r';
-    fs.writeFileSync(fileName, csvHeader);
-  }
-  fs.appendFileSync(fileName, data);
-}
