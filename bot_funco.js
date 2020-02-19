@@ -33,6 +33,7 @@ const fetchProductsLinks = () => new Promise(async (resolve, reject) => {
     console.log(`No of Pages found on site: ${noOfPages}`);
 
     for (let i = 1; i <= noOfPages; i++) {
+      console.log(`Fetching Products Links from page ${i}/${noOfPages}`);
       if (i > 1) {
         await page.goto(`${siteLink}/products?limit=192&page=${i}`, {timeout: 0, waitUntil: 'load'});
       }
