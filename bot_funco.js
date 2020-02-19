@@ -36,7 +36,7 @@ const fetchProductsLinks = () => new Promise(async (resolve, reject) => {
       await page.waitForSelector('.products > .catalog-product a.item-figure-container');
       let pageLinks = await Helper.getAttrMultiple('.products > .catalog-product a.item-figure-container', 'href', page);
       pageLinks = pageLinks.map(pl => siteLink + pl);
-      productsLinks.push(pageLinks);
+      productsLinks.push(...pageLinks);
       console.log(productsLinks, productsLinks.length);
     }
     
