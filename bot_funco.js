@@ -82,6 +82,8 @@ const scrapeProducts = () => new Promise(async (resolve, reject) => {
 const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
   let page;
   try {
+    console.log(`${prodIdx + 1}/${productsLinks.length} - Fetching product details for ${productsLinks[prodIdx]}`);
+    
     page = await Helper.launchPage(browser, true);
     await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'load'});
     await page.waitForSelector('.product-info h1');
@@ -100,7 +102,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
   }
 })
 
-const getCellVal = (valLink, label, page) => {
+const getCellVal = async (valLink, label, page) => {
   try {
     let returnVal = '';
     await page.waitForSelector('.product-details');
