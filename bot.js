@@ -9,7 +9,7 @@ const Helper = require('./helpers');
 const {siteLink} = require('./config');
 let browser;
 let productsLinks = [];
-productsLinks = JSON.parse(fs.readFileSync('productsLinks.json', 'utf8'));
+// productsLinks = JSON.parse(fs.readFileSync('productsLinks.json', 'utf8'));
 
 module.exports.runBot = () => new Promise(async (resolve, reject) => {
   try {
