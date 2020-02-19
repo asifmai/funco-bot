@@ -1,4 +1,5 @@
 const fs = require('fs');
+const _ = require('underscore');
 const Helper = require('./helpers');
 const {siteLink} = require('./config');
 let browser;
@@ -11,6 +12,8 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
     // Fetch Products Links from site
     await fetchProductsLinks();
     console.log(`No of Products found on site: ${productsLinks.length}`);
+    productsLinks = _.uniq(productsLinks);
+    console.log(`No of Products found on site (after removing duplicates): ${productsLinks.length}`);
     fs.writeFileSync('productsLinks.json', JSON.stringify(productsLinks));
 
     await browser.close();
@@ -37,7 +40,7 @@ const fetchProductsLinks = () => new Promise(async (resolve, reject) => {
       let pageLinks = await Helper.getAttrMultiple('.products > .catalog-product a.item-figure-container', 'href', page);
       pageLinks = pageLinks.map(pl => siteLink + pl);
       productsLinks.push(...pageLinks);
-      console.log(productsLinks, productsLinks.length);
+      console.log(productsLinks.length);
     }
     
     await page.close();
