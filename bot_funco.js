@@ -89,6 +89,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     await page.waitForSelector('.product-info h1');
     
     const product = {url: productsLinks[prodIdx]};
+    product.pictures = await fetchPicturesUrls(page);
     product.title = await Helper.getTxt('.product-info h1', page);
     product.releaseDate = await getCellVal('val', 'release date:', page);
     product.releaseDateUrl = await getCellVal('url', 'release date:', page);
@@ -101,6 +102,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     product.seeMore = await getCellVal('val', 'see more:', page);
     product.seeMoreUrl = await getCellVal('url', 'see more:', page);
     product.exclusivity = await getCellVal('val', 'exclusivity:', page);
+    product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
     product.dateScraped = new Date();
 
     console.log(product);
@@ -136,5 +138,27 @@ const getCellVal = (valLink, label, page) => new Promise(async (resolve, reject)
     reject(error);
   }
 })
+
+const fetchPicturesUrls = (page) => new Promise(async (resolve, reject) => {
+  try {
+    let returnVal = '';
+    const morePictures = await page.$('.image-sidebar img');
+    if (morePictures) {
+      await page.waitForSelector('.image-sidebar img');
+      let pictures = await Helper.getAttrMultiple('.image-sidebar img', 'src', page);
+      pictures = pictures.map(pic => siteLink + pic);
+      returnVal = pictures.join(',');
+    } else {
+      const picture = await Helper.getAttr('.image-container > img', 'src', page);
+      returnVal = siteLink + picture;
+    }
+
+    resolve(returnVal);
+  } catch (error) {
+    console.log(`fetchPicturesUrls Error: ${error.message}`);
+    reject(error);
+  }
+})
+
 
 this.runBot();
