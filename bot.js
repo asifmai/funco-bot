@@ -9,14 +9,13 @@ const Helper = require('./helpers');
 const {siteLink} = require('./config');
 let browser;
 let productsLinks = [];
-// productsLinks = JSON.parse(fs.readFileSync('productsLinks.json', 'utf8'));
+let products = [];
 
 module.exports.runBot = () => new Promise(async (resolve, reject) => {
   try {
     browser = await Helper.launchBrowser();
-    rimraf.sync('pics');
-    if (fs.existsSync('pics.zip')) fs.unlinkSync('pics.zip');
-    if (fs.existsSync('products.csv')) fs.unlinkSync('products.csv');
+    if (!fs.existsSync('pics')) fs.mkdirSync('pics');
+    if (fs.existsSync('products.json')) products = JSON.parse(fs.readFileSync('products.json', 'utf8'));
 
     // Fetch Products Links from site
     console.log(`Fetching Products Links from site...`);
@@ -30,7 +29,7 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
     console.log(`Fetching Products Data...`);
     await scrapeProducts();
 
-    await zip('pics', 'pics.zip');
+    fs.writeFileSync('products.json', JSON.stringify(products));
 
     await browser.close();
     resolve(true);
@@ -72,9 +71,8 @@ const fetchProductsLinks = () => new Promise(async (resolve, reject) => {
 
 const scrapeProducts = () => new Promise(async (resolve, reject) => {
   try {
-    fs.mkdirSync('pics');
     const promises = [];
-    const limit = pLimit(10);
+    const limit = pLimit(20);
 
     for (let i = 0; i < productsLinks.length; i++) {
       promises.push(limit(() => scrapeProduct(i)));
