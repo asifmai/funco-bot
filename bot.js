@@ -13,7 +13,7 @@ let productsLinks = [];
 
 module.exports.runBot = () => new Promise(async (resolve, reject) => {
   try {
-    browser = await Helper.launchBrowser();
+    browser = await Helper.launchBrowser(true);
     rimraf.sync('pics');
     if (fs.existsSync('pics.zip')) fs.unlinkSync('pics.zip');
     if (fs.existsSync('products.csv')) fs.unlinkSync('products.csv');
@@ -161,15 +161,7 @@ const fetchPicturesUrls = (page) => new Promise(async (resolve, reject) => {
       pictures.push(picture);
     }
     pictures = pictures.map(pic => siteLink + pic);
-    pictures = pictures.map(pic => encodeURI(pic));
-    const picPath = path.resolve(__dirname, 'pics');
-    for (let i = 0; i < pictures.length; i++) {
-      const options = {
-        url: pictures[i],
-        dest: picPath,
-      }
-      await download.image(options);
-    }
+    await downloadPictures(pictures);
 
     resolve(pictures.join(','));
   } catch (error) {
@@ -177,6 +169,29 @@ const fetchPicturesUrls = (page) => new Promise(async (resolve, reject) => {
     reject(error);
   }
 })
+
+const downloadPictures = (pictures) => new Promise(async (resolve, reject) => {
+  let page;
+  try {
+    page = await Helper.launchPage(browser);
+    await page._client.send('Network.enable', {
+      maxResourceBufferSize: 1024 * 1204 * 100,
+      maxTotalBufferSize: 1024 * 1204 * 200,
+    })
+    for (let i = 0; i < pictures.length; i++) {
+      const viewSource = await page.goto(pictures[i], {timeout: 0, waitUntil: 'load'});
+      const imgPath = path.resolve(__dirname, `pics/${pictures[i].split('/').pop()}`);
+      fs.writeFileSync(imgPath, await viewSource.buffer());
+    }
+    
+    await page.close();
+    resolve();
+  } catch (error) {
+    await page.close();
+    console.log(`downloadPictures Error: ${error.message}`);
+    reject(error);
+  }
+});
 
 const writeToCsv = (fileName, data) => {
   if (!fs.existsSync(fileName)) {
