@@ -161,6 +161,7 @@ const fetchPicturesUrls = (page) => new Promise(async (resolve, reject) => {
       pictures.push(picture);
     }
     pictures = pictures.map(pic => siteLink + pic);
+    pictures = pictures.map(pic => encodeURI(pic));
     const picPath = path.resolve(__dirname, 'pics');
     for (let i = 0; i < pictures.length; i++) {
       const options = {
