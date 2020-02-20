@@ -13,7 +13,7 @@ let productsLinks = [];
 
 module.exports.runBot = () => new Promise(async (resolve, reject) => {
   try {
-    browser = await Helper.launchBrowser(true);
+    browser = await Helper.launchBrowser();
     rimraf.sync('pics');
     if (fs.existsSync('pics.zip')) fs.unlinkSync('pics.zip');
     if (fs.existsSync('products.csv')) fs.unlinkSync('products.csv');
