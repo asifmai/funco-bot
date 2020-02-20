@@ -121,7 +121,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
   } catch (error) {
     await page.close();
     console.log(`scrapeProduct [${productsLinks[prodIdx]}] Error: ${error.message}`);
-    reject(error);
+    resolve(error);
   }
 })
 
@@ -161,7 +161,7 @@ const fetchPicturesUrls = (page) => new Promise(async (resolve, reject) => {
       pictures.push(picture);
     }
     pictures = pictures.map(pic => siteLink + pic);
-    await downloadPictures(pictures);
+    // await downloadPictures(pictures);
 
     resolve(pictures.join(','));
   } catch (error) {
