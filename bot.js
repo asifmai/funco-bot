@@ -113,7 +113,9 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
     product.dateScraped = new Date();
 
-    writeToCsv('products.csv', product);
+    products.push(product);
+    // writeToCsv('products.csv', product);
+
     await page.close();
     resolve(true);
   } catch (error) {
@@ -159,7 +161,7 @@ const fetchPicturesUrls = (page) => new Promise(async (resolve, reject) => {
       pictures.push(picture);
     }
     pictures = pictures.map(pic => siteLink + pic);
-    // await downloadPictures(pictures);
+    await downloadPictures(pictures);
 
     resolve(pictures.join(','));
   } catch (error) {
