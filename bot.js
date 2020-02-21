@@ -101,10 +101,15 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     Helper.botSettingsSet('currentStatus', statusLine);
     
     page = await Helper.launchPage(browser, true);
-    const response = await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'networkidle2'});
+    const response = await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'load'});
     
     if (response.status() == 200) {
-      await page.waitForSelector('.product-info h1');
+      try {
+        await page.waitForSelector('.product-info h1');
+        await page.waitForSelector('.product-details');
+      } catch (error) {
+        resolve(true);
+      }
       
       const product = {url: productsLinks[prodIdx]};
       product.pictures = await fetchPicturesUrls(page);
