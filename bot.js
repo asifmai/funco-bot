@@ -24,10 +24,9 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
     console.log(`No of Products found on site (after removing duplicates): ${productsLinks.length}`);
     
     // Compare Products Links with already scraped products
-    let storedFiles = fs.readdirSync(`${batchName}/pics`);
-    storedFiles = storedFiles.map(f => f.replace('.json', ''));
-    if (storedFiles.length > 0) {
-      productsLinks = productsLinks.filter(pl => !storedFiles.includes(pl.split('/').pop()));
+    if (fs.existsSync('allproducts.csv')) {
+      const storedProducts = JSON.parse(`[${fs.readFileSync('allproducts.csv')}]`);
+      productsLinks = productsLinks.filter(pl => !storedProducts.includes(pl));
       console.log(`No of Products found on site (after comparing with saved products): ${productsLinks.length}`);
     }
 
