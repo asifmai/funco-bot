@@ -122,7 +122,10 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
     product.dateScraped = new Date();
 
-    fs.writeFileSync(`${batchName}/products/${product.url.split('/').pop()}.json`, JSON.stringify(product));
+    const productFileName = `${batchName}/products/${product.url.split('/').pop()}.json`;
+    if (fs.existsSync(productFileName)) console.log(`**************** A L E R T : FILE ALREADY EXISTS: ${productFileName} *************`);
+    fs.writeFileSync(productFileName, JSON.stringify(product));
+    await writeToCsv('allproducts.csv', product.url);
 
     newProducts++;
     await page.close();
@@ -201,3 +204,12 @@ const downloadPictures = (pictures) => new Promise(async (resolve, reject) => {
     reject(error);
   }
 });
+
+
+const writeToCsv = (fileName, data) => {
+  if (!fs.existsSync(fileName)) {
+    fs.writeFileSync(fileName, `"${data}"`);
+  } else {
+    fs.appendFileSync(fileName, `,"${data}"`);
+  }
+}
