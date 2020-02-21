@@ -102,32 +102,34 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     
     page = await Helper.launchPage(browser, true);
     const response = await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'load'});
-    console.log(`Response Status: ${response.status()}`)
-    console.log(`Response Status: ${response.statusText()}`)
-    await page.waitForSelector('.product-info h1');
     
-    const product = {url: productsLinks[prodIdx]};
-    product.pictures = await fetchPicturesUrls(page);
-    product.title = await Helper.getTxt('.product-info h1', page);
-    product.releaseDate = await getCellVal('val', 'release date:', page);
-    product.releaseDateUrl = await getCellVal('url', 'release date:', page);
-    product.status = await getCellVal('val', 'status:', page);
-    product.itemNumber = await getCellVal('val', 'item number:', page);
-    product.category = await getCellVal('val', 'category:', page);
-    product.categoryUrl = await getCellVal('url', 'category:', page);
-    product.productType = await getCellVal('val', 'product type:', page);
-    product.productTypeUrl = await getCellVal('url', 'product type:', page);
-    product.seeMore = await getCellVal('val', 'see more:', page);
-    product.seeMoreUrl = await getCellVal('url', 'see more:', page);
-    product.exclusivity = await getCellVal('val', 'exclusivity:', page);
-    product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
-    product.dateScraped = new Date();
-
-    const productFileName = `${batchName}/products/${product.itemNumber}.json`;
-    fs.writeFileSync(productFileName, JSON.stringify(product));
-    await writeToCsv('allproducts.csv', product.url);
-
-    newProducts++;
+    if (response.status() == 200) {
+      await page.waitForSelector('.product-info h1');
+      
+      const product = {url: productsLinks[prodIdx]};
+      product.pictures = await fetchPicturesUrls(page);
+      product.title = await Helper.getTxt('.product-info h1', page);
+      product.releaseDate = await getCellVal('val', 'release date:', page);
+      product.releaseDateUrl = await getCellVal('url', 'release date:', page);
+      product.status = await getCellVal('val', 'status:', page);
+      product.itemNumber = await getCellVal('val', 'item number:', page);
+      product.category = await getCellVal('val', 'category:', page);
+      product.categoryUrl = await getCellVal('url', 'category:', page);
+      product.productType = await getCellVal('val', 'product type:', page);
+      product.productTypeUrl = await getCellVal('url', 'product type:', page);
+      product.seeMore = await getCellVal('val', 'see more:', page);
+      product.seeMoreUrl = await getCellVal('url', 'see more:', page);
+      product.exclusivity = await getCellVal('val', 'exclusivity:', page);
+      product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
+      product.dateScraped = new Date();
+  
+      const productFileName = `${batchName}/products/${product.itemNumber}.json`;
+      fs.writeFileSync(productFileName, JSON.stringify(product));
+      await writeToCsv('allproducts.csv', product.url);
+  
+      newProducts++;
+    }
+    
     await page.close();
     resolve(true);
   } catch (error) {
