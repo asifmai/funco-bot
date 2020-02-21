@@ -23,11 +23,16 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
     console.log(`No of Products found on site: ${productsLinks.length}`);
     productsLinks = _.uniq(productsLinks);
     console.log(`No of Products found on site (after removing duplicates): ${productsLinks.length}`);
+    if (products.length > 0) {
+      productsLinks = productsLinks.filter(product => !productsLinks.some(p => p.url == product));
+      console.log(`No of Products found on site (after comparing with old products): ${productsLinks.length}`);
+    }
+
     fs.writeFileSync('productsLinks.json', JSON.stringify(productsLinks));
 
     // Scrape Products Data
     console.log(`Fetching Products Data...`);
-    await scrapeProducts();
+    // await scrapeProducts();
 
     fs.writeFileSync('products.json', JSON.stringify(products));
 
