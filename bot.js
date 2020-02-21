@@ -104,15 +104,9 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     const response = await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'load'});
     
     if (response.status() == 200) {
-      try {
-        await page.waitForSelector('.product-info h1');
-        await page.waitForSelector('.product-details');
-      } catch (error) {
-        resolve(true);
-      }
+      await page.waitForSelector('.product-info h1');
       
       const product = {url: productsLinks[prodIdx]};
-      product.pictures = await fetchPicturesUrls(page);
       product.title = await Helper.getTxt('.product-info h1', page);
       product.releaseDate = await getCellVal('val', 'release date:', page);
       product.releaseDateUrl = await getCellVal('url', 'release date:', page);
@@ -127,7 +121,8 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
       product.exclusivity = await getCellVal('val', 'exclusivity:', page);
       product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
       product.dateScraped = new Date();
-  
+      product.pictures = await fetchPicturesUrls(page);
+      
       const productFileName = `${batchName}/products/${product.itemNumber}.json`;
       fs.writeFileSync(productFileName, JSON.stringify(product));
       await writeToCsv('allproducts.csv', product.url);
