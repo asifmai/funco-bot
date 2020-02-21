@@ -9,7 +9,7 @@ app.get('/', (req, res) => {
     res.status(200).json({botName});
 });
 
-app.get('/update-products', async (req, res) => {
+app.get('/first-run', async (req, res) => {
     const botStatus = await botSettingsGet('status');
     if (botStatus == 'RUNNING') {
         return res.status(200).send('Bot is already running');
@@ -27,5 +27,5 @@ app.get('/status', async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Funcobot is running on port: ${port}`);
+    console.log(`${botName} Bot is running on port: ${port}`);
 })

@@ -1,33 +1,33 @@
 const fs = require('fs');
-const _ = require('underscore');
-const rimraf = require('rimraf');
 const path = require('path');
-const pLimit = require('p-limit');
-const download = require('image-downloader');
-const {zip} = require('zip-a-folder');
 const Helper = require('./helpers');
 const {siteLink} = require('./config');
 let browser;
 let productsLinks = [];
-let products = [];
+let batchName = 'base';
 let newProducts = 0;
 
 module.exports.runBot = () => new Promise(async (resolve, reject) => {
   try {
     browser = await Helper.launchBrowser();
-    if (!fs.existsSync('pics')) fs.mkdirSync('pics');
-    if (fs.existsSync('products.json')) products = JSON.parse(fs.readFileSync('products.json', 'utf8'));
-    console.log(`Number of Products Stored on Server: ${products.length}`);
 
+    // Create new Folders Based on Batch Name
+    if (!fs.existsSync(batchName)) fs.mkdirSync(batchName);
+    if (!fs.existsSync(`${batchName}/pics`)) fs.mkdirSync(`${batchName}/pics`);
+    if (!fs.existsSync(`${batchName}/products`)) fs.mkdirSync(`${batchName}/products`);
+    
     // Fetch Products Links from site
     console.log(`Fetching Products Links from site...`);
     await fetchProductsLinks();
-    console.log(`No of Products found on site: ${productsLinks.length}`);
     productsLinks = _.uniq(productsLinks);
     console.log(`No of Products found on site (after removing duplicates): ${productsLinks.length}`);
-    if (products.length > 0) {
-      productsLinks = productsLinks.filter(product => !products.some(p => p.url == product));
-      console.log(`No of NEW Products found on site (after comparing with old products): ${productsLinks.length}`);
+    
+    // Compare Products Links with already scraped products
+    let storedFiles = fs.readdirSync(`${batchName}/pics`);
+    storedFiles = storedFiles.map(f => f.replace('.json', ''));
+    if (storedFiles.length > 0) {
+      productsLinks = productsLinks.filter(pl => !storedFiles.includes(pl.split('/').pop()));
+      console.log(`No of Products found on site (after comparing with saved products): ${productsLinks.length}`);
     }
 
     // Scrape Products Data
@@ -35,15 +35,14 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
     await scrapeProducts();
 
     console.log(`Scraped ${newProducts} new Products...`);
-    fs.writeFileSync('products.json', JSON.stringify(products));
-    await Helper.botSettingsSet('status', 'IDLE');
     await Helper.botSettingsSet('currentStatus', `Scraping Products Finished, Found ${newProducts} New Products`);
-
+    
+    await Helper.botSettingsSet('status', 'IDLE');
     await browser.close();
     resolve(true);
   } catch (error) {
     await Helper.botSettingsSet('status', 'IDLE');
-    await Helper.botSettingsSet('currentStatus', `Scraping Products Finished, Found ${newProducts} New Products`);
+    await Helper.botSettingsSet('currentStatus', `Error: ${error.message}`);
     await browser.close();
     console.log(`runBot Error: ${error.message}`);
     reject(error);
@@ -83,14 +82,9 @@ const fetchProductsLinks = () => new Promise(async (resolve, reject) => {
 
 const scrapeProducts = () => new Promise(async (resolve, reject) => {
   try {
-    const promises = [];
-    const limit = pLimit(20);
-
     for (let i = 0; i < productsLinks.length; i++) {
-      promises.push(limit(() => scrapeProduct(i)));
+      await scrapeProduct(i);
     }
-
-    await Promise.all(promises);
 
     resolve(true);
   } catch (error) {
@@ -127,16 +121,15 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
     product.dateScraped = new Date();
 
-    newProducts++;
-    products.push(product);
-    // writeToCsv('products.csv', product);
+    fs.writeFileSync(`${batchName}/products/${product.url.split('/').pop()}`);
 
+    newProducts++;
     await page.close();
     resolve(true);
   } catch (error) {
     await page.close();
     console.log(`scrapeProduct [${productsLinks[prodIdx]}] Error: ${error.message}`);
-    resolve(error);
+    reject(error);
   }
 })
 
@@ -207,12 +200,3 @@ const downloadPictures = (pictures) => new Promise(async (resolve, reject) => {
     reject(error);
   }
 });
-
-const writeToCsv = (fileName, data) => {
-  if (!fs.existsSync(fileName)) {
-    const csvHeader = '"Picture URL","Title","Release Date","Release Date URL","Status","Item Number","Category","Category URL","Product Type","Product Type URL","See More","See More URL","Exclusivity","Share URL","Date Scraped"\n';
-    fs.writeFileSync(fileName, csvHeader);
-  }
-  const csvLine = `"${data.pictures}","${data.title}","${data.releaseDate}","${data.releaseDateUrl}","${data.status}","${data.itemNumber}","${data.category}","${data.categoryUrl}","${data.productType}","${data.productTypeUrl}","${data.seeMore}","${data.seeMoreUrl}","${data.exclusivity}","${data.shareUrl}","${data.dateScraped}"\n`;
-  fs.appendFileSync(fileName, csvLine);
-}
