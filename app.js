@@ -26,11 +26,6 @@ app.get('/status', async (req, res) => {
     res.status(200).json(botSettings);
 });
 
-app.get('/scrape-categories', async (req, res) => {
-    // await botSettingsSet('status', 'RUNNING');
-    res.status(200).send('This function is not ready yet');
-});
-
 app.listen(port, () => {
     console.log(`Funcobot is running on port: ${port}`);
 })
