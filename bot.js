@@ -189,7 +189,7 @@ const downloadPictures = (pictures) => new Promise(async (resolve, reject) => {
     })
     for (let i = 0; i < pictures.length; i++) {
       const viewSource = await page.goto(pictures[i], {timeout: 0, waitUntil: 'load'});
-      const imgPath = path.resolve(__dirname, `pics/${pictures[i].split('/').pop()}`);
+      const imgPath = path.resolve(__dirname, `${batchName}/pics/${pictures[i].split('/').pop()}`);
       fs.writeFileSync(imgPath, await viewSource.buffer());
     }
     
