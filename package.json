@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.17.1",
     "image-downloader": "^3.5.0",
     "p-limit": "^2.2.2",
     "puppeteer": "^2.0.0",

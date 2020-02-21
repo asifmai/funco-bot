@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const fs = require('fs');
 
 module.exports.launchBrowser = (debug = false) => {
   return new Promise(async (resolve, reject) => {
@@ -265,3 +266,21 @@ module.exports.getAttrMultiple = (selector, attribute, page) => new Promise(asyn
     reject(error);
   }
 });
+
+module.exports.botSettingsSet = async (label, value) => {
+  let botSettings = {};
+  if (fs.existsSync('botSettings.json')) botSettings = JSON.parse(fs.readFileSync('botSettings.json', 'utf8'));
+  botSettings[label] = value;
+  fs.writeFileSync('botSettings.json', JSON.stringify(botSettings));
+  return;
+}
+
+module.exports.botSettingsGet = async (label) => {
+  let botSettings = {}
+  if (fs.existsSync('botSettings.json')) {
+    botSettings = JSON.parse(fs.readFileSync('botSettings.json', 'utf8'))
+    return botSettings[label];
+  } else {
+    return false;
+  }
+}

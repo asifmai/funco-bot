@@ -10,12 +10,14 @@ const {siteLink} = require('./config');
 let browser;
 let productsLinks = [];
 let products = [];
+let newProducts = 0;
 
 module.exports.runBot = () => new Promise(async (resolve, reject) => {
   try {
     browser = await Helper.launchBrowser();
     if (!fs.existsSync('pics')) fs.mkdirSync('pics');
     if (fs.existsSync('products.json')) products = JSON.parse(fs.readFileSync('products.json', 'utf8'));
+    console.log(`Number of Products Stored on Server: ${products.length}`);
 
     // Fetch Products Links from site
     console.log(`Fetching Products Links from site...`);
@@ -32,11 +34,16 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
     console.log(`Fetching Products Data...`);
     await scrapeProducts();
 
+    console.log(`Scraped ${newProducts} new Products...`);
     fs.writeFileSync('products.json', JSON.stringify(products));
+    await Helper.botSettingsSet('status', 'IDLE');
+    await Helper.botSettingsSet('currentStatus', `Scraping Products Finished, Found ${newProducts} New Products`);
 
     await browser.close();
     resolve(true);
   } catch (error) {
+    await Helper.botSettingsSet('status', 'IDLE');
+    await Helper.botSettingsSet('currentStatus', `Scraping Products Finished, Found ${newProducts} New Products`);
     await browser.close();
     console.log(`runBot Error: ${error.message}`);
     reject(error);
@@ -53,7 +60,9 @@ const fetchProductsLinks = () => new Promise(async (resolve, reject) => {
     console.log(`No of Pages found on site: ${noOfPages}`);
 
     for (let i = 1; i <= noOfPages; i++) {
-      console.log(`Fetching Products Links from page ${i}/${noOfPages}`);
+      const statusLine = `Fetching Products Links from page ${i}/${noOfPages}`;
+      console.log(statusLine);
+      Helper.botSettingsSet('currentStatus', statusLine);
       if (i > 1) {
         await page.goto(`${siteLink}/products?limit=192&page=${i}`, {timeout: 0, waitUntil: 'load'});
       }
@@ -93,7 +102,9 @@ const scrapeProducts = () => new Promise(async (resolve, reject) => {
 const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
   let page;
   try {
-    console.log(`${prodIdx + 1}/${productsLinks.length} - Fetching product details for ${productsLinks[prodIdx]}`);
+    const statusLine = `${prodIdx + 1}/${productsLinks.length} - Fetching product details for ${productsLinks[prodIdx]}`;
+    console.log(statusLine);
+    Helper.botSettingsSet('currentStatus', statusLine);
     
     page = await Helper.launchPage(browser, true);
     await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'load'});
@@ -116,6 +127,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
     product.dateScraped = new Date();
 
+    newProducts++;
     products.push(product);
     // writeToCsv('products.csv', product);
 
@@ -204,5 +216,3 @@ const writeToCsv = (fileName, data) => {
   const csvLine = `"${data.pictures}","${data.title}","${data.releaseDate}","${data.releaseDateUrl}","${data.status}","${data.itemNumber}","${data.category}","${data.categoryUrl}","${data.productType}","${data.productTypeUrl}","${data.seeMore}","${data.seeMoreUrl}","${data.exclusivity}","${data.shareUrl}","${data.dateScraped}"\n`;
   fs.appendFileSync(fileName, csvLine);
 }
-
-this.runBot();
