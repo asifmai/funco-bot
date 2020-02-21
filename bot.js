@@ -101,7 +101,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     Helper.botSettingsSet('currentStatus', statusLine);
     
     page = await Helper.launchPage(browser, true);
-    const response = await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'load'});
+    const response = await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'networkidle2'});
     
     if (response.status() == 200) {
       await page.waitForSelector('.product-info h1');
@@ -128,6 +128,8 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
       await writeToCsv('allproducts.csv', product.url);
   
       newProducts++;
+    } else {
+      console.log(`The page could not be loaded, response status: ${response.status()}`);
     }
     
     await page.close();
