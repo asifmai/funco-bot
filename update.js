@@ -14,26 +14,26 @@ let products = [];
 module.exports.runBot = () => new Promise(async (resolve, reject) => {
   try {
     browser = await Helper.launchBrowser();
-    if (!fs.existsSync('pics')) fs.mkdirSync('pics');
-    if (fs.existsSync('products.json')) products = JSON.parse(fs.readFileSync('products.json', 'utf8'));
+    if (fs.existsSync('products.json')) {
+      products = JSON.parse(fs.readFileSync('products.json', 'utf8'));
 
-    // Fetch Products Links from site
-    console.log(`Fetching Products Links from site...`);
-    await fetchProductsLinks();
-    console.log(`No of Products found on site: ${productsLinks.length}`);
-    productsLinks = _.uniq(productsLinks);
-    console.log(`No of Products found on site (after removing duplicates): ${productsLinks.length}`);
-    if (products.length > 0) {
-      productsLinks = productsLinks.filter(product => !products.some(p => p.url == product));
+      // Fetch Products Links from site
+      console.log(`Fetching Products Links from Categories...`);
+      await fetchProductsLinks();
+      console.log(`No of Products found on site: ${productsLinks.length}`);
+      productsLinks = _.uniq(productsLinks);
+      console.log(`No of Products found on site (after removing duplicates): ${productsLinks.length}`);
+      productsLinks = productsLinks.filter(product => !productsLinks.some(p => p.url == product));
       console.log(`No of NEW Products found on site (after comparing with old products): ${productsLinks.length}`);
+  
+      // Scrape Products Data
+      console.log(`Fetching Products Data...`);
+      // await scrapeProducts();
+  
+      fs.writeFileSync('products.json', JSON.stringify(products));
+  
     }
-
-    // Scrape Products Data
-    console.log(`Fetching Products Data...`);
-    // await scrapeProducts();
-
-    fs.writeFileSync('products.json', JSON.stringify(products));
-
+    
     await browser.close();
     resolve(true);
   } catch (error) {
