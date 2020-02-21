@@ -42,7 +42,7 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
     resolve(true);
   } catch (error) {
     await Helper.botSettingsSet('status', 'IDLE');
-    await Helper.botSettingsSet('currentStatus', `Error: ${error.message}`);
+    await Helper.botSettingsSet('currentStatus', `Error: ${error.message}, Scraped ${newProducts} new Products`);
     await browser.close();
     console.log(`runBot Error: ${error.message}`);
     reject(error);
@@ -121,8 +121,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
     product.dateScraped = new Date();
 
-    const productFileName = `${batchName}/products/${product.url.split('/').pop()}.json`;
-    if (fs.existsSync(productFileName)) console.log(`**************** A L E R T : FILE ALREADY EXISTS: ${productFileName} *************`);
+    const productFileName = `${batchName}/products/${product.itemNumber}.json`;
     fs.writeFileSync(productFileName, JSON.stringify(product));
     await writeToCsv('allproducts.csv', product.url);
 
