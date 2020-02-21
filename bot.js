@@ -122,7 +122,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     product.shareUrl = await Helper.getAttr('.share-url input', 'value', page);
     product.dateScraped = new Date();
 
-    fs.writeFileSync(`${batchName}/products/${product.url.split('/').pop()}.json`);
+    fs.writeFileSync(`${batchName}/products/${product.url.split('/').pop()}.json`, JSON.stringify(product));
 
     newProducts++;
     await page.close();
