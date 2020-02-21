@@ -36,8 +36,8 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
 
     console.log(`Scraped ${newProducts} new Products...`);
     await Helper.botSettingsSet('currentStatus', `Scraping Products Finished, Found ${newProducts} New Products`);
-    
     await Helper.botSettingsSet('status', 'IDLE');
+
     await browser.close();
     resolve(true);
   } catch (error) {
@@ -101,7 +101,9 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     Helper.botSettingsSet('currentStatus', statusLine);
     
     page = await Helper.launchPage(browser, true);
-    await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'load'});
+    const response = await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'load'});
+    console.log(`Response Status: ${response.status()}`)
+    console.log(`Response Status: ${response.statusText()}`)
     await page.waitForSelector('.product-info h1');
     
     const product = {url: productsLinks[prodIdx]};
