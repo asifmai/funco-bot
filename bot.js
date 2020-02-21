@@ -30,7 +30,7 @@ module.exports.runBot = () => new Promise(async (resolve, reject) => {
 
     // Scrape Products Data
     console.log(`Fetching Products Data...`);
-    // await scrapeProducts();
+    await scrapeProducts();
 
     fs.writeFileSync('products.json', JSON.stringify(products));
 
