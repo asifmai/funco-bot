@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const Helper = require('./helpers');
-const {siteLink} = require('./config');
+const {siteLink, retries} = require('./config');
 let browser;
 let productsLinks = [];
 let batchName = 'base';
@@ -83,7 +83,10 @@ const fetchProductsLinks = () => new Promise(async (resolve, reject) => {
 const scrapeProducts = () => new Promise(async (resolve, reject) => {
   try {
     for (let i = 0; i < productsLinks.length; i++) {
-      await scrapeProduct(i);
+      for (let j = 0; j < retries; j++) {
+        scraped = await scrapeProduct(i);
+        if (scraped) break;
+      }
     }
 
     resolve(true);
@@ -137,7 +140,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
   } catch (error) {
     await page.close();
     console.log(`scrapeProduct [${productsLinks[prodIdx]}] Error: ${error.message}`);
-    resolve(error);
+    resolve(false);
   }
 })
 
