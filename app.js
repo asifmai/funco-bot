@@ -4,20 +4,22 @@ const fs = require('fs');
 const {port, botName} = require('./config');
 const {botSettingsSet, botSettingsGet} = require('./helpers');
 const {runBot} = require('./bot')
+const {updateProducts} = require('./update')
 
 app.get('/', (req, res) => {
     res.status(200).json({botName});
 });
 
 app.get('/first-run', async (req, res) => {
-    const botStatus = await botSettingsGet('status');
-    if (botStatus == 'RUNNING') {
-        return res.status(200).send('Bot is already running');
-    } else {
-        await botSettingsSet('status', 'RUNNING');
-        runBot();
-        return res.status(200).send('Scraping Products Started');
-    }
+    await botSettingsSet('status', 'RUNNING');
+    runBot();
+    return res.status(200).send('Scraping Products Started');
+});
+
+app.get('/update/:batchName', async (req, res) => {
+    await botSettingsSet('status', 'RUNNING');
+    updateProducts(req.params.batchName);
+    return res.status(200).send('Updating Products Started');
 });
 
 app.get('/status', async (req, res) => {
