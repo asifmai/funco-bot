@@ -137,7 +137,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
   } catch (error) {
     await page.close();
     console.log(`scrapeProduct [${productsLinks[prodIdx]}] Error: ${error.message}`);
-    reject(error);
+    resolve(error);
   }
 })
 
