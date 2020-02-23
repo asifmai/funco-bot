@@ -27,7 +27,8 @@ module.exports.scrapeCategories = (bn) => new Promise(async (resolve, reject) =>
         categoriesUrls.push(product.seeMoreUrl);
       }
     }
-    console.log(categoriesUrls, categoriesUrls.length);
+    categoriesUrls = _.uniq(categoriesUrls);
+    console.log(`No of Categories found on site (after removing duplicates): ${categoriesUrls.length}`);
 
     // Fetch Products Links from site
     // console.log(`Fetching Products Links from site...`);

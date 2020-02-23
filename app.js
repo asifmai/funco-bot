@@ -23,7 +23,7 @@ app.get('/update/:batchName', async (req, res) => {
     return res.status(200).send('Updating Products Started');
 });
 
-app.get('/category/:batchName', async (req, res) => {
+app.get('/categories/:batchName', async (req, res) => {
     await botSettingsSet('status', 'RUNNING');
     scrapeCategories(req.params.batchName);
     return res.status(200).send('Updating Products Started');
