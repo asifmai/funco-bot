@@ -5,6 +5,7 @@ const {port, botName} = require('./config');
 const {botSettingsSet, botSettingsGet} = require('./helpers');
 const {runBot} = require('./bot')
 const {updateProducts} = require('./update')
+const {scrapeCategories} = require('./categories')
 
 app.get('/', (req, res) => {
     res.status(200).json({botName});
@@ -19,6 +20,12 @@ app.get('/first-run', async (req, res) => {
 app.get('/update/:batchName', async (req, res) => {
     await botSettingsSet('status', 'RUNNING');
     updateProducts(req.params.batchName);
+    return res.status(200).send('Updating Products Started');
+});
+
+app.get('/category/:batchName', async (req, res) => {
+    await botSettingsSet('status', 'RUNNING');
+    scrapeCategories(req.params.batchName);
     return res.status(200).send('Updating Products Started');
 });
 
