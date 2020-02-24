@@ -91,20 +91,21 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
       noOfPages = 1;
     }
     console.log(`No of Pages found in Category: ${noOfPages}`);
+    await page.close();
 
     for (let i = 1; i <= noOfPages; i++) {
       const statusLine = `Fetching Products Links from page ${i}/${noOfPages}`;
       console.log(statusLine);
-      if (i > 1) {
-        await page.goto(`${categoriesLinks[catIndex]}&limit=192&page=${i}`, {timeout: 0, waitUntil: 'load'});
-      }
+
+      page = await Helper.launchPage(browser, true);
+      await page.goto(`${categoriesLinks[catIndex]}&limit=192&page=${i}`, {timeout: 0, waitUntil: 'load'});
       await page.waitForSelector('.products > .catalog-product a.item-figure-container');
       let pageLinks = await Helper.getAttrMultiple('.products > .catalog-product a.item-figure-container', 'href', page);
       pageLinks = pageLinks.map(pl => siteLink + pl);
       categoryProducts.push(...pageLinks);
+      await page.close();
     }
 
-    await page.close();
     resolve(categoryProducts);
   } catch (error) {
     await page.close();
