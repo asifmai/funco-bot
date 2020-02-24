@@ -84,6 +84,7 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
     await page.goto(`${categoriesLinks[catIndex]}&limit=192`, {timeout: 0, waitUntil: 'load'});
     
     let noOfPages;
+    await page.waitForSelector('.products > .catalog-product a.item-figure-container');
     const gotPages = await page.$('.pagination > button:nth-last-child(2)');
     if (gotPages) {
       noOfPages = parseInt(await Helper.getTxt('.pagination > button:nth-last-child(2)', page));
@@ -91,21 +92,21 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
       noOfPages = 1;
     }
     console.log(`No of Pages found in Category: ${noOfPages}`);
-    await page.close();
+    // await page.close();
 
     for (let i = 1; i <= noOfPages; i++) {
       const statusLine = `Fetching Products Links from page ${i}/${noOfPages}`;
       console.log(statusLine);
 
-      page = await Helper.launchPage(browser, true);
+      // page = await Helper.launchPage(browser, true);
       await page.goto(`${categoriesLinks[catIndex]}&limit=192&page=${i}`, {timeout: 0, waitUntil: 'load'});
       await page.waitForSelector('.products > .catalog-product a.item-figure-container');
       let pageLinks = await Helper.getAttrMultiple('.products > .catalog-product a.item-figure-container', 'href', page);
       pageLinks = pageLinks.map(pl => siteLink + pl);
       categoryProducts.push(...pageLinks);
-      await page.close();
     }
-
+    
+    await page.close();
     resolve(categoryProducts);
   } catch (error) {
     await page.close();
