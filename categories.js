@@ -89,10 +89,10 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
     } else {
       noOfPages = 1;
     }
-    console.log(`No of Pages found on site: ${noOfPages}`);
+    console.log(`No of Pages found in Category: ${noOfPages}`);
 
     for (let i = 1; i <= noOfPages; i++) {
-      const statusLine = `Fetching Products Links from page ${i}/${noOfPages}`;
+      const statusLine = `Fetching Products Links from category ${i}/${noOfPages}`;
       console.log(statusLine);
       if (i > 1) {
         await page.goto(`${categoriesLinks[catIndex]}&limit=192&page=${i}`, {timeout: 0, waitUntil: 'load'});
@@ -101,9 +101,6 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
       let pageLinks = await Helper.getAttrMultiple('.products > .catalog-product a.item-figure-container', 'href', page);
       pageLinks = pageLinks.map(pl => siteLink + pl);
       categoryProducts.push(...pageLinks);
-    }
-    for (let j = 0; j < pageLinks.length; j++) {
-      await writeToCsv('allcatproducts.csv', pageLinks[j]);
     }
 
     await writeToCsv('allcategories.csv', categoriesLinks[catIndex]);
