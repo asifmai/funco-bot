@@ -54,7 +54,7 @@ module.exports.scrapeCategories = (bn) => new Promise(async (resolve, reject) =>
 
       //   await fetchProductsFromCategory(catProducts);
       //   await writeToCsv('allcategories.csv', categoriesLinks[i]);
-      }
+      // }
 
       fs.unlinkSync('allcategories.csv');
     } else {
