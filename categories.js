@@ -53,6 +53,7 @@ module.exports.scrapeCategories = (bn) => new Promise(async (resolve, reject) =>
         }
 
         await fetchProductsFromCategory(catProducts);
+        await writeToCsv('allcategories.csv', categoriesLinks[i]);
       }
 
       fs.unlinkSync('allcategories.csv');
@@ -92,7 +93,7 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
     console.log(`No of Pages found in Category: ${noOfPages}`);
 
     for (let i = 1; i <= noOfPages; i++) {
-      const statusLine = `Fetching Products Links from category ${i}/${noOfPages}`;
+      const statusLine = `Fetching Products Links from page ${i}/${noOfPages}`;
       console.log(statusLine);
       if (i > 1) {
         await page.goto(`${categoriesLinks[catIndex]}&limit=192&page=${i}`, {timeout: 0, waitUntil: 'load'});
@@ -103,7 +104,6 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
       categoryProducts.push(...pageLinks);
     }
 
-    await writeToCsv('allcategories.csv', categoriesLinks[catIndex]);
     await page.close();
     resolve(categoryProducts);
   } catch (error) {
