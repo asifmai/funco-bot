@@ -4,51 +4,64 @@ const _ = require('underscore');
 const Helper = require('./helpers');
 const {siteLink, retries} = require('./config');
 let browser;
-let productsLinks = [];
 let batchName;
 let newProducts = 0;
-let categoriesUrls = [];
+let categoriesLinks = [];
 
 module.exports.scrapeCategories = (bn) => new Promise(async (resolve, reject) => {
   try {
-    batchName = bn;
+    batchName = `cateogies-${bn}`;
     browser = await Helper.launchBrowser();
 
-    // Create new Folders Based on Batch Name
-    if (!fs.existsSync(batchName)) fs.mkdirSync(batchName);
-    if (!fs.existsSync(`${batchName}/pics`)) fs.mkdirSync(`${batchName}/pics`);
-    if (!fs.existsSync(`${batchName}/products`)) fs.mkdirSync(`${batchName}/products`);
     
-    // Fetch Links from categories
     if (fs.existsSync('base')) {
+      // Create new Folders Based on Batch Name
+      if (!fs.existsSync(batchName)) fs.mkdirSync(batchName);
+      if (!fs.existsSync(`${batchName}/pics`)) fs.mkdirSync(`${batchName}/pics`);
+      if (!fs.existsSync(`${batchName}/products`)) fs.mkdirSync(`${batchName}/products`);
+
+      // Fetch Links from categories
       const files = fs.readdirSync('base/products');
       for (let i = 0; i < files.length; i++) {
         const product = JSON.parse(fs.readFileSync(`base/products/${files[i]}`));
-        categoriesUrls.push(product.seeMoreUrl);
+        categoriesLinks.push(product.seeMoreUrl);
       }
+      categoriesLinks = _.uniq(categoriesLinks);
+      console.log(`No of Categories found on site (after removing duplicates): ${categoriesLinks.length}`);
+
+      // Skip Categories That are already done
+      if (fs.existsSync('allcategories.csv')) {
+        const storedCategories = JSON.parse(`[${fs.readFileSync('allcategories.csv', 'utf8')}]`);
+        categoriesLinks = categoriesLinks.filter(cl => !storedCategories.includes(cl));
+        console.log(`No of Categories found on site (after comparing with saved categories): ${categoriesLinks.length}`);
+      }
+
+      for (let i = 0; i < categoriesLinks.length; i++) {
+        // Fetch Products from a category
+        const statusLine = `Fetching Products Links from category: ${categoriesLinks[i]}`;
+        console.log(statusLine);
+        Helper.botSettingsSet('currentStatus', statusLine);
+
+        let catProducts = await fetchProductsLinks(i);
+        console.log(`No of Products found in Cateogiry: ${catProducts.length}`);
+        
+        // Compare Products Links with already scraped products
+        if (fs.existsSync('allproducts.csv')) {
+          const storedProducts = JSON.parse(`[${fs.readFileSync('allproducts.csv')}]`);
+          catProducts = catProducts.filter(cp => !storedProducts.includes(cp));
+          console.log(`No of Products found in Cateogiry (after comparing with saved products): ${catProducts.length}`);
+        }
+
+        await fetchProductsFromCategory(catProducts);
+      }
+
+      fs.unlinkSync('allcategories.csv');
+    } else {
+      console.log('Make first run of the bot first...');
     }
-    categoriesUrls = _.uniq(categoriesUrls);
-    console.log(`No of Categories found on site (after removing duplicates): ${categoriesUrls.length}`);
-
-    // Fetch Products Links from site
-    // console.log(`Fetching Products Links from site...`);
-    // await fetchProductsLinks();
-    // productsLinks = _.uniq(productsLinks);
-    // console.log(`No of Products found on site (after removing duplicates): ${productsLinks.length}`);
-    
-    // Compare Products Links with already scraped products
-    // if (fs.existsSync('allproducts.csv')) {
-    //   const storedProducts = JSON.parse(`[${fs.readFileSync('allproducts.csv')}]`);
-    //   productsLinks = productsLinks.filter(pl => !storedProducts.includes(pl));
-    //   console.log(`No of Products found on site (after comparing with saved products): ${productsLinks.length}`);
-    // }
-
-    // Scrape Products Data
-    // console.log(`Fetching Products Data...`);
-    // await scrapeProducts();
 
     console.log(`Scraped ${newProducts} new Products...`);
-    await Helper.botSettingsSet('currentStatus', `Updating Products Finished, Found ${newProducts} New Products`);
+    await Helper.botSettingsSet('currentStatus', `Scrape Categories Finished, Found ${newProducts} New Products`);
     await Helper.botSettingsSet('status', 'IDLE');
 
     await browser.close();
@@ -62,30 +75,40 @@ module.exports.scrapeCategories = (bn) => new Promise(async (resolve, reject) =>
   }
 })
 
-const fetchProductsLinks = () => new Promise(async (resolve, reject) => {
+const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => {
   let page;
   try {
+    let categoryProducts = [];
     page = await Helper.launchPage(browser, true);
-    await page.goto(`${siteLink}/products?limit=192`, {timeout: 0, waitUntil: 'load'});
-    await page.waitForSelector('.pagination > button:nth-last-child(2)');
-    const noOfPages = parseInt(await Helper.getTxt('.pagination > button:nth-last-child(2)', page));
+    await page.goto(`${categoriesLinks[catIndex]}&limit=192`, {timeout: 0, waitUntil: 'load'});
+    
+    let noOfPages;
+    const gotPages = await page.$('.pagination > button:nth-last-child(2)');
+    if (gotPages) {
+      noOfPages = parseInt(await Helper.getTxt('.pagination > button:nth-last-child(2)', page));
+    } else {
+      noOfPages = 1;
+    }
     console.log(`No of Pages found on site: ${noOfPages}`);
 
     for (let i = 1; i <= noOfPages; i++) {
       const statusLine = `Fetching Products Links from page ${i}/${noOfPages}`;
       console.log(statusLine);
-      Helper.botSettingsSet('currentStatus', statusLine);
       if (i > 1) {
-        await page.goto(`${siteLink}/products?limit=192&page=${i}`, {timeout: 0, waitUntil: 'load'});
+        await page.goto(`${categoriesLinks[catIndex]}&limit=192&page=${i}`, {timeout: 0, waitUntil: 'load'});
       }
       await page.waitForSelector('.products > .catalog-product a.item-figure-container');
       let pageLinks = await Helper.getAttrMultiple('.products > .catalog-product a.item-figure-container', 'href', page);
       pageLinks = pageLinks.map(pl => siteLink + pl);
-      productsLinks.push(...pageLinks);
+      categoryProducts.push(...pageLinks);
     }
-    
+    for (let j = 0; j < pageLinks.length; j++) {
+      await writeToCsv('allcatproducts.csv', pageLinks[j]);
+    }
+
+    await writeToCsv('allcategories.csv', categoriesLinks[catIndex]);
     await page.close();
-    resolve();
+    resolve(categoryProducts);
   } catch (error) {
     await page.close();
     console.log(`fetchProductsLinks Error: ${error.message}`);
@@ -93,11 +116,15 @@ const fetchProductsLinks = () => new Promise(async (resolve, reject) => {
   }
 })
 
-const scrapeProducts = () => new Promise(async (resolve, reject) => {
+const fetchProductsFromCategory = (productsLinks) => new Promise(async (resolve, reject) => {
   try {
     for (let i = 0; i < productsLinks.length; i++) {
+      const statusLine = `${i + 1}/${productsLinks.length} - Fetching product details for ${productsLinks[i]}`;
+      console.log(statusLine);
+      Helper.botSettingsSet('currentStatus', statusLine);
+
       for (let j = 0; j < retries; j++) {
-        scraped = await scrapeProduct(i);
+        scraped = await scrapeProduct(productsLinks[i]);
         if (scraped) break;
       }
     }
@@ -109,20 +136,16 @@ const scrapeProducts = () => new Promise(async (resolve, reject) => {
   }
 });
 
-const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
+const scrapeProduct = (prodUrl) => new Promise(async (resolve, reject) => {
   let page;
   try {
-    const statusLine = `${prodIdx + 1}/${productsLinks.length} - Fetching product details for ${productsLinks[prodIdx]}`;
-    console.log(statusLine);
-    Helper.botSettingsSet('currentStatus', statusLine);
-    
     page = await Helper.launchPage(browser, true);
-    const response = await page.goto(productsLinks[prodIdx], {timeout: 0, waitUntil: 'load'});
+    const response = await page.goto(prodUrl, {timeout: 0, waitUntil: 'load'});
     
     if (response.status() == 200) {
       await page.waitForSelector('.product-info h1');
       
-      const product = {url: productsLinks[prodIdx]};
+      const product = {url: prodUrl};
       product.title = await Helper.getTxt('.product-info h1', page);
       product.releaseDate = await getCellVal('val', 'release date:', page);
       product.releaseDateUrl = await getCellVal('url', 'release date:', page);
@@ -152,7 +175,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
     resolve(true);
   } catch (error) {
     await page.close();
-    console.log(`scrapeProduct [${productsLinks[prodIdx]}] Error: ${error.message}`);
+    console.log(`scrapeProduct [${productsLinks[prodUrl]}] Error: ${error.message}`);
     resolve(false);
   }
 })
