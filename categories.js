@@ -29,32 +29,32 @@ module.exports.scrapeCategories = (bn) => new Promise(async (resolve, reject) =>
       console.log(`No of Categories found on site (after removing duplicates): ${categoriesLinks.length}`);
       console.log(categoriesLinks, categoriesLinks.length)
 
-      // // Skip Categories That are already done
-      // if (fs.existsSync('allcategories.csv')) {
-      //   const storedCategories = JSON.parse(`[${fs.readFileSync('allcategories.csv', 'utf8')}]`);
-      //   categoriesLinks = categoriesLinks.filter(cl => !storedCategories.includes(cl));
-      //   console.log(`No of Categories found on site (after comparing with saved categories): ${categoriesLinks.length}`);
-      // }
+      // Skip Categories That are already done
+      if (fs.existsSync('allcategories.csv')) {
+        const storedCategories = JSON.parse(`[${fs.readFileSync('allcategories.csv', 'utf8')}]`);
+        categoriesLinks = categoriesLinks.filter(cl => !storedCategories.includes(cl));
+        console.log(`No of Categories found on site (after comparing with saved categories): ${categoriesLinks.length}`);
+      }
 
-      // for (let i = 0; i < categoriesLinks.length; i++) {
-      //   // Fetch Products from a category
-      //   const statusLine = `Fetching Products Links from category: ${categoriesLinks[i]}`;
-      //   console.log(statusLine);
-      //   Helper.botSettingsSet('currentStatus', statusLine);
+      for (let i = 0; i < categoriesLinks.length; i++) {
+        // Fetch Products from a category
+        const statusLine = `Fetching Products Links from category: ${categoriesLinks[i]}`;
+        console.log(statusLine);
+        Helper.botSettingsSet('currentStatus', statusLine);
 
-      //   let catProducts = await fetchProductsLinks(i);
-      //   console.log(`No of Products found in Cateogiry: ${catProducts.length}`);
+        let catProducts = await fetchProductsLinks(i);
+        console.log(`No of Products found in Cateogiry: ${catProducts.length}`);
         
-      //   // Compare Products Links with already scraped products
-      //   if (fs.existsSync('allproducts.csv')) {
-      //     const storedProducts = JSON.parse(`[${fs.readFileSync('allproducts.csv')}]`);
-      //     catProducts = catProducts.filter(cp => !storedProducts.includes(cp));
-      //     console.log(`No of Products found in Cateogiry (after comparing with saved products): ${catProducts.length}`);
-      //   }
+        // Compare Products Links with already scraped products
+        if (fs.existsSync('allproducts.csv')) {
+          const storedProducts = JSON.parse(`[${fs.readFileSync('allproducts.csv')}]`);
+          catProducts = catProducts.filter(cp => !storedProducts.includes(cp));
+          console.log(`No of Products found in Cateogiry (after comparing with saved products): ${catProducts.length}`);
+        }
 
-      //   await fetchProductsFromCategory(catProducts);
-      //   await writeToCsv('allcategories.csv', categoriesLinks[i]);
-      // }
+        await fetchProductsFromCategory(catProducts);
+        await writeToCsv('allcategories.csv', categoriesLinks[i]);
+      }
 
       fs.unlinkSync('allcategories.csv');
     } else {
