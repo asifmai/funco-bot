@@ -81,7 +81,7 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
   try {
     let categoryProducts = [];
     page = await Helper.launchPage(browser);
-    await page.goto(`${categoriesLinks[catIndex]}&limit=192`, {timeout: 0, waitUntil: 'load'});
+    await page.goto(`${categoriesLinks[catIndex]}&limit=192`, {timeout: 0, waitUntil: 'domcontentloaded'});
     
     let noOfPages = 1;
     try {
