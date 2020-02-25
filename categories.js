@@ -93,9 +93,9 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
     } catch (error) {
       noOfPages = 0;
     }
+    if (noOfPages == 52) noOfPages = 0;
     console.log(`No of Pages found in Category: ${noOfPages}`);
 
-    if (noOfPages == 52) noOfPages = 0;
     for (let i = 1; i <= noOfPages; i++) {
       const statusLine = `Fetching Products Links from page ${i}/${noOfPages}`;
       console.log(statusLine);
@@ -175,7 +175,7 @@ const scrapeProduct = (prodUrl) => new Promise(async (resolve, reject) => {
     resolve(true);
   } catch (error) {
     await page.close();
-    console.log(`scrapeProduct [${productsLinks[prodUrl]}] Error: ${error.message}`);
+    console.log(`scrapeProduct [${prodUrl}] Error: ${error.message}`);
     resolve(false);
   }
 })
