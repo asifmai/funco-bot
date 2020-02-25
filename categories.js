@@ -27,7 +27,6 @@ module.exports.scrapeCategories = (bn) => new Promise(async (resolve, reject) =>
       }
       categoriesLinks = _.uniq(categoriesLinks);
       console.log(`No of Categories found on site (after removing duplicates): ${categoriesLinks.length}`);
-      console.log(categoriesLinks, categoriesLinks.length)
 
       // Skip Categories That are already done
       if (fs.existsSync('allcategories.csv')) {
@@ -82,7 +81,7 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
     let categoryProducts = [];
     page = await Helper.launchPage(browser, true);
     await page.goto(`${categoriesLinks[catIndex]}&limit=192`, {timeout: 0, waitUntil: 'load'});
-    await page.waitFor(15000);
+    await page.waitFor(10000);
 
     let noOfPages = 1;
     try {
@@ -96,6 +95,7 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
     }
     console.log(`No of Pages found in Category: ${noOfPages}`);
 
+    if (noOfPages == 52) noOfPages = 0;
     for (let i = 1; i <= noOfPages; i++) {
       const statusLine = `Fetching Products Links from page ${i}/${noOfPages}`;
       console.log(statusLine);
