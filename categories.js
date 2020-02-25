@@ -82,11 +82,11 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
     let categoryProducts = [];
     page = await Helper.launchPage(browser);
     await page.goto(`${categoriesLinks[catIndex]}&limit=192`, {timeout: 0, waitUntil: 'load'});
-    await page.waitFor(10000);
+    await page.waitFor(15000);
 
     let noOfPages = 1;
     try {
-      await page.waitForSelector('.products > .catalog-product a.item-figure-container', {timeout: 60000});
+      await page.waitForSelector('.products > .catalog-product a.item-figure-container');
       const gotPages = await page.$('.pagination > button:nth-last-child(2)');
       if (gotPages) {
         noOfPages = parseInt(await Helper.getTxt('.pagination > button:nth-last-child(2)', page));
