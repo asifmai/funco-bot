@@ -80,7 +80,7 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
   let page;
   try {
     let categoryProducts = [];
-    page = await Helper.launchPage(browser);
+    page = await Helper.launchPage(browser, true);
     await page.goto(`${categoriesLinks[catIndex]}&limit=192`, {timeout: 0, waitUntil: 'load'});
     await page.waitFor(15000);
 
