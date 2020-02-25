@@ -38,7 +38,7 @@ module.exports.scrapeCategories = (bn) => new Promise(async (resolve, reject) =>
 
       for (let i = 0; i < categoriesLinks.length; i++) {
         // Fetch Products from a category
-        const statusLine = `Fetching Products Links from category: ${categoriesLinks[i]}`;
+        const statusLine = `${i+1}/${categoriesLinks.length} - Fetching Products Links from category: ${categoriesLinks[i]}`;
         console.log(statusLine);
         Helper.botSettingsSet('currentStatus', statusLine);
 
@@ -80,7 +80,7 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
   let page;
   try {
     let categoryProducts = [];
-    page = await Helper.launchPage(browser, true);
+    page = await Helper.launchPage(browser);
     await page.goto(`${categoriesLinks[catIndex]}&limit=192`, {timeout: 0, waitUntil: 'load'});
     
     let noOfPages = 1;
