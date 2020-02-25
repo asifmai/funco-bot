@@ -82,8 +82,8 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
     let categoryProducts = [];
     page = await Helper.launchPage(browser);
     await page.goto(`${categoriesLinks[catIndex]}&limit=192`, {timeout: 0, waitUntil: 'load'});
-    await page.waitFor(5000);
-    
+    await page.waitFor(10000);
+
     let noOfPages = 1;
     try {
       await page.waitForSelector('.products > .catalog-product a.item-figure-container', {timeout: 60000});
@@ -106,7 +106,7 @@ const fetchProductsLinks = (catIndex) => new Promise(async (resolve, reject) => 
       pageLinks = pageLinks.map(pl => siteLink + pl);
       categoryProducts.push(...pageLinks);
     }
-    
+
     await page.close();
     resolve(categoryProducts);
   } catch (error) {
