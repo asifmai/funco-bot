@@ -110,7 +110,8 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
       await page.waitForSelector('.product-info h1');
       
       const product = {url: productsLinks[prodIdx]};
-      product.title = await Helper.getTxt('.product-info h1', page);
+      // product.title = await Helper.getTxt('.product-info h1', page);
+      product.title = productsLinks[prodIdx].split('/').pop();
       product.releaseDate = await getCellVal('val', 'release date:', page);
       product.releaseDateUrl = await getCellVal('url', 'release date:', page);
       product.status = await getCellVal('val', 'status:', page);
