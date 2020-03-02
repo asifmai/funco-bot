@@ -110,8 +110,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
       await page.waitForSelector('.product-info h1');
       
       const product = {url: productsLinks[prodIdx]};
-      // product.title = await Helper.getTxt('.product-info h1', page);
-      product.title = productsLinks[prodIdx].split('/').pop();
+      product.title = await Helper.getTxt('.product-info h1', page);
       product.releaseDate = await getCellVal('val', 'release date:', page);
       product.releaseDateUrl = await getCellVal('url', 'release date:', page);
       product.status = await getCellVal('val', 'status:', page);
@@ -127,7 +126,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
       product.dateScraped = new Date();
       product.pictures = await fetchPicturesUrls(page);
       
-      const productFileName = `${batchName}/products/${product.itemNumber}.json`;
+      const productFileName = `${batchName}/products/${productsLinks[prodIdx].split('/').pop()}.json`;
       fs.writeFileSync(productFileName, JSON.stringify(product));
       await writeToCsv('allproducts.csv', product.url);
   
