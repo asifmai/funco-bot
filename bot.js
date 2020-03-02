@@ -126,7 +126,7 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
       product.dateScraped = new Date();
       product.pictures = await fetchPicturesUrls(page);
       
-      const productFileName = `${batchName}/products/${productsLinks[prodIdx].split('/').pop()}.json`;
+      const productFileName = `${batchName}/products/${product.itemNumber}.json`;
       fs.writeFileSync(productFileName, JSON.stringify(product));
       await writeToCsv('allproducts.csv', product.url);
   

@@ -47,7 +47,15 @@ module.exports.scrapeCategories = (bn) => new Promise(async (resolve, reject) =>
         // Compare Products Links with already scraped products
         if (fs.existsSync('allproducts.csv')) {
           const storedProducts = JSON.parse(`[${fs.readFileSync('allproducts.csv')}]`);
-          catProducts = catProducts.filter(cp => !storedProducts.includes(cp));
+          // catProducts = catProducts.filter(cp => !storedProducts.includes(cp));
+          catProducts = catProducts.filter(cp => {
+            cpName = cp.split('/').pop();
+            const scrapedBefore = storedProducts.some(sp => {
+              spName = sp.split('/').pop();
+              return cpName == spName
+            })
+            return !scrapedBefore;
+          });
           console.log(`No of Products found in Cateogiry (after comparing with saved products): ${catProducts.length}`);
         }
 
@@ -162,7 +170,7 @@ const scrapeProduct = (prodUrl) => new Promise(async (resolve, reject) => {
       product.dateScraped = new Date();
       product.pictures = await fetchPicturesUrls(page);
       
-      const productFileName = `${batchName}/products/${productsLinks[prodIdx].split('/').pop()}.json`;
+      const productFileName = `${batchName}/products/${product.itemNumber}.json`;
       fs.writeFileSync(productFileName, JSON.stringify(product));
       await writeToCsv('allproducts.csv', product.url);
   
