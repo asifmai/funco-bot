@@ -21,7 +21,7 @@ module.exports.updateProducts = (bn) => new Promise(async (resolve, reject) => {
     // Fetch Products Links from site
     console.log(`Fetching Products Links from site...`);
     await fetchProductsLinks();
-    productsLinks = _.uniq(productsLinks);
+    productsLinks = _.uniq(productsLinks); 
     console.log(`No of Products found on site (after removing duplicates): ${productsLinks.length}`);
     
     // Compare Products Links with already scraped products
