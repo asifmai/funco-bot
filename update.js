@@ -27,15 +27,7 @@ module.exports.updateProducts = (bn) => new Promise(async (resolve, reject) => {
     // Compare Products Links with already scraped products
     if (fs.existsSync('allproducts.csv')) {
       const storedProducts = JSON.parse(`[${fs.readFileSync('allproducts.csv')}]`);
-      // productsLinks = productsLinks.filter(pl => !storedProducts.includes(pl));
-      productsLinks = productsLinks.filter(prod => {
-        prodName = prod.split('/').pop();
-        const scrapedBefore = storedProducts.some(sp => {
-          spName = sp.split('/').pop();
-          return prodName == spName
-        })
-        return !scrapedBefore; 
-      });
+      productsLinks = productsLinks.filter(pl => !storedProducts.includes(pl.split('/').pop()));
       console.log(`No of Products found on site (after comparing with saved products): ${productsLinks.length}`);
     }
 
@@ -135,9 +127,9 @@ const scrapeProduct = (prodIdx) => new Promise(async (resolve, reject) => {
       product.dateScraped = new Date();
       product.pictures = await fetchPicturesUrls(page);
       
-      const productFileName = `${batchName}/products/${product.itemNumber}.json`;
+      const productFileName = `${batchName}/products/${product.url.split('/').pop()}.json`;
       fs.writeFileSync(productFileName, JSON.stringify(product));
-      await writeToCsv('allproducts.csv', product.url);
+      await writeToCsv('allproducts.csv', product.url.split('/').pop());
   
       newProducts++;
     } else {
